@@ -10,7 +10,7 @@ buildscript {
 group 'lamblin'
 version '0.1-SNAPSHOT'
 
-apply plugin: 'idea'
+//apply plugin: 'idea' // Should use directory based IDEA projects, this plugin does not.
 apply plugin: 'java'
 apply plugin: "com.google.protobuf"
 
@@ -22,13 +22,40 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
+    javaCompile group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.0.0-beta-1'
 }
 
 protobuf {
+    generateProtoTasks {
+        // all() returns the collection of all protoc tasks
+        all().each { task ->
+            // Here you can configure the task
+            // Configure built-in outputs. Each block generates a
+            // '--<name>_out' flag to the protoc command line.
+            task.builtins {
+                // In Java projects, the "java" output is added automatically.
+                // You only need it if you want it in an Android project or want to add
+                // options.
+                // DO NOT omit the braces if you want this builtin to be added.
+                // java { }
+                // In Android projects, the "javanano" output is added automatically.
+                // You only need it if you want it in an Java project or want to add
+                // options.
+                // javanano {
+                //     // Options added to --javanano_out
+                //     option 'java_multiple_files=true'
+                //     option 'ignore_services=true'
+                // }
+                // Turn on python proto generation
+                python { }
+            }
+        }
+    }
     // Configure the protoc executable
     protoc {
         // Download from repositories
         artifact = 'com.google.protobuf:protoc:3.0.0-alpha-3'
+//        artifact = 'com.google.protobuf:protobuf-java-util:3.0.0-beta-1'
     }
 }
 
