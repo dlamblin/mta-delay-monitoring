@@ -11,7 +11,7 @@ group 'lamblin'
 version '0.1-SNAPSHOT'
 
 //apply plugin: 'idea' // Should use directory based IDEA projects, this plugin does not.
-apply plugin: 'java'
+apply plugin: 'application'
 apply plugin: "com.google.protobuf"
 
 sourceCompatibility = 1.8
@@ -62,6 +62,31 @@ protobuf {
         artifact = 'com.google.protobuf:protoc:3.0.0-alpha-3'
 //        artifact = 'com.google.protobuf:protobuf-java-util:3.0.0-beta-1'
     }
+}
+
+// First Application Script
+mainClassName = "com.insight.lamblin.GtfsToJson"
+applicationName = "gtfsToJson"
+
+// Subsequent Scripts
+task createAllStartScripts() << {
+    // This task is added to by a loop over the scripts array creating-sub tasks
+}
+def scripts = [ 'gtfsToJson': 'com.insight.lamblin.GtfsToJson',
+                //'scriptB':'com.example.ScriptB',
+]
+scripts.each() { scriptName, className ->
+    def t = tasks.create(name: scriptName+'StartScript', type: CreateStartScripts) {
+        mainClassName = className
+        applicationName = scriptName
+        outputDir = new File(project.buildDir, 'scripts')
+        classpath = jar.outputs.files + project.configurations.runtime
+    }
+    applicationDistribution.into("bin") {
+        from(t)
+        fileMode = 0755
+    }
+    createAllStartScripts.dependsOn(t)
 }
 
 //sourceSets {
