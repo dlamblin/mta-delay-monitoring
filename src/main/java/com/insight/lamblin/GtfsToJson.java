@@ -1,15 +1,13 @@
 package com.insight.lamblin;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
@@ -20,6 +18,8 @@ import org.docopt.Docopt;
  */
 public class GtfsToJson {
 
+    public static final String MTA_API_KEY = "MtaApiKey";
+    public static final String LOCAL_PROPERTIES = "local.properties";
     private static final String docopt
             = "Gtfs to Json.\n" +
             "\n" +
@@ -35,7 +35,7 @@ public class GtfsToJson {
             "and similarly output the json to stdout.\n" +
             "Note that the feed id is substituted into the url's last \"=1&\" in\n" +
             "place of \"1\" and the MTA Feed Api Key is appended to the url.\n" +
-            "If the key is omitted a local.properties file with apiKey=<key>\n" +
+            "If the key is omitted a " + LOCAL_PROPERTIES + " file with MtaApiKey=<key>\n" +
             "is expected.\n" +
             "\n" +
             "Options:\n" +
@@ -52,6 +52,7 @@ public class GtfsToJson {
         this.in = in;
     }
 
+    @SuppressWarnings("unchecked")
     public static void main(String[] args) throws Exception {
         Map<String, Object> opts =
                 new Docopt(docopt).withVersion("Gtfs to Json 1.0").parse(args);
@@ -62,7 +63,7 @@ public class GtfsToJson {
         List<String> optFile = (List<String>) opts.get("<file>");
         Boolean optGet = (Boolean) opts.get("get");
         Boolean optRead = (Boolean) opts.get("read");
-        GtfsToJson gtfsToJson = null;
+        GtfsToJson gtfsToJson;
 
         // Reading GTFS from standard input or files
         if (optRead) {
@@ -83,7 +84,25 @@ public class GtfsToJson {
         // Reading GTFS from a URL
         if (optGet) {
             if (optApiKey == null) {
-                // Defaults to key in local.properties if available
+                // Defaults to key in LOCAL_PROPERTIES file if available
+                Properties props = new Properties();
+                Path path = Paths.get(LOCAL_PROPERTIES);
+                if (Files.notExists(path)) {
+                    props.setProperty(MTA_API_KEY, "");
+                    try (BufferedWriter w = Files.newBufferedWriter(
+                            path, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW)) {
+                        props.store(w, "Properties for mta-delay-notifications; by gtfsToJson");
+                    }
+                } else {
+                    props.load(Files.newInputStream(path));
+                    if (props.getProperty(MTA_API_KEY) == null) {
+                        props.setProperty(MTA_API_KEY, "");
+                        try (BufferedWriter w = Files.newBufferedWriter(
+                                path, StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {
+                            props.store(w, "Added properties for mta-delay-notifications by gtfsToJson");
+                        }
+                    }
+                }
             }
             if (!"1".equals(optFeed) && !"2".equals(optFeed) && !"11".equals(optFeed)) {
                 die(optFeed, "Error: Value of '--feed' or '-f' flag was invalid: %s\n" +
@@ -95,30 +114,39 @@ public class GtfsToJson {
 // "file:///C:\\Users\\dlamblin\\Documents\\src\\github.com\\dlamblin\\mta-delay-monitoring\\gtfs");
             int paramFeed = optUrl.lastIndexOf("=1&");
             if (paramFeed > -1) {
-                optUrl = optUrl.substring(0, paramFeed + 1) +optFeed +
-                        optUrl.substring(paramFeed + 2);
+                optUrl = optUrl.substring(0, paramFeed + 1) + optFeed +
+                        optUrl.substring(paramFeed + 2) + optApiKey;
             } else {
                 die(optUrl, "Error: Uri given to '--url' or '-u' did not contain '=1&' " +
                         "for feed substitution. Uri was: %s");
             }
+            log("Info: Fetching " + optUrl);
             URL url = new URL(optUrl);
-            gtfsToJson = new GtfsToJson(url.openStream());
-            gtfsToJson.out();
+            URLConnection conn = url.openConnection();
+            log("Info: " + optUrl + " Header Fields: " + conn.getHeaderFields().toString());
+            try (InputStream in = conn.getInputStream()) {
+                gtfsToJson = new GtfsToJson(in);
+                gtfsToJson.out();
+            }
         }
     }
 
+    private static void log(String s) {
+        System.err.println(s.replace('\n', ' '));
+    }
+
     private static void die(String option, String format) {
-        System.err.printf(format, option);
+        log(String.format(format, option));
         System.exit(1);
     }
 
     private void out() throws IOException {
-        String readLine;
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
-        while (((readLine = br.readLine()) != null)) {
-            System.out.println(readLine);
-        }
-        in.reset();
+//        String readLine;
+//        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+//        while (((readLine = br.readLine()) != null)) {
+//            System.out.println(readLine);
+//        }
+//        in.reset();
         FeedMessage feed = FeedMessage.parseFrom(in);
         for (FeedEntity entity : feed.getEntityList()) {
             if (entity.hasTripUpdate()) {
