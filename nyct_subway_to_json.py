@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Maybe the protoc 2.6.1 and 3.0.0-beta-1 output is not actually python 3.5 compatible.
 
 ## REQUIRES simplejson, protobuf, and a copy of pbjson.py from https://github.com/NextTuesday/py-pb-converters
 
@@ -8,12 +9,12 @@ import os
 base_dir = os.path.dirname(__file__) or '.'
 import sys
 sys.path.insert(0, os.path.join(base_dir, 'build', 'generated', 'source', 'proto', 'main', 'python'))
-import simplejson
 # import build.generated.source.proto.main.python.gtfs_realtime_pb2 as gtfs__realtime__pb2
 # from build.generated.source.proto.main.python.nyct_subway_pb2 import TripReplacementPeriod
 import build.generated.source.proto.main.python.gtfs_realtime_pb2 as gtfs_realtime_pb2
 import build.generated.source.proto.main.python.nyct_subway_pb2 as nyct_subway_pb2
 import pbjson
+import simplejson
 
 file_to_open = sys.argv[1] or 'gtfs'
 gtfsFeedMessage = gtfs_realtime_pb2.FeedMessage

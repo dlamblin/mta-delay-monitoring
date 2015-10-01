@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.google.protobuf.ExtensionRegistry;
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
 import org.docopt.Docopt;
@@ -138,11 +139,17 @@ public class GtfsToJson {
     }
 
     private void out() throws IOException {
-        FeedMessage feed = FeedMessage.parseFrom(in);
+        ExtensionRegistry registry = ExtensionRegistry.newInstance();
+        registry.add(com.google.transit.realtime.NyctSubway.nyctFeedHeader);
+        registry.add(com.google.transit.realtime.NyctSubway.nyctTripDescriptor);
+        registry.add(com.google.transit.realtime.NyctSubway.nyctStopTimeUpdate);
+
+        FeedMessage feed = FeedMessage.parseFrom(in, registry);
+        if (feed.hasHeader()) {
+            System.out.println(feed.getHeader());
+        }
         for (FeedEntity entity : feed.getEntityList()) {
-            if (entity.hasTripUpdate()) {
-                System.out.println(entity.getTripUpdate());
-            }
+            System.out.println(entity);
         }
     }
 }
