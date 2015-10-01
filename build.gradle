@@ -22,11 +22,8 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'com.google.protobuf:protobuf-java-util:3.0.0-beta-1'
-//    compile group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.0.0-beta-1'
-    compile 'com.google.transit:gtfs-realtime-bindings:0.0.4'
-//    compile group: 'org.google.transit', name: 'gtfs-realtime-bindings', version: '0.0.4'
-//    compile 'com.offbytwo:docopt:0.6.0.20150202'
+    compile group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.0.0-beta-1'
+    compile group: 'com.google.transit', name: 'gtfs-realtime-bindings', version: '0.0.4'
     compile group: 'com.offbytwo', name: 'docopt', version: '0.6.0.20150202'
 }
 
@@ -59,8 +56,8 @@ protobuf {
     // Configure the protoc executable
     protoc {
         // Download from repositories
-        artifact = 'com.google.protobuf:protoc:3.0.0-alpha-3'
-//        artifact = 'com.google.protobuf:protobuf-java-util:3.0.0-beta-1'
+        //  artifact = 'com.google.protobuf:protoc:3.0.0-alpha-3'
+        artifact = 'com.google.protobuf:protoc:2.6.1'
     }
 }
 

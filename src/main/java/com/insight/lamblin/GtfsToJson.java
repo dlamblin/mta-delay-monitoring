@@ -109,9 +109,6 @@ public class GtfsToJson {
                         "\tPlease use:\n\t\t'1' for the 1,2,3,4,5,6,S trains,\n" +
                         "\t\t'2' for the L train, and\n\t\tand '11' for the SIR");
             }
-//            System.getProperty("user.dir"));
-//            URL url = new URL(
-// "file:///C:\\Users\\dlamblin\\Documents\\src\\github.com\\dlamblin\\mta-delay-monitoring\\gtfs");
             int paramFeed = optUrl.lastIndexOf("=1&");
             if (paramFeed > -1) {
                 optUrl = optUrl.substring(0, paramFeed + 1) + optFeed +
@@ -141,12 +138,6 @@ public class GtfsToJson {
     }
 
     private void out() throws IOException {
-//        String readLine;
-//        BufferedReader br = new BufferedReader(new InputStreamReader(in));
-//        while (((readLine = br.readLine()) != null)) {
-//            System.out.println(readLine);
-//        }
-//        in.reset();
         FeedMessage feed = FeedMessage.parseFrom(in);
         for (FeedEntity entity : feed.getEntityList()) {
             if (entity.hasTripUpdate()) {

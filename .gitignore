@@ -1,10 +1,7 @@
 # Specific to this project #
 ############################
-backup_input/
-wc_input/*txt
-wc_output/*txt
-tweet_input/*.txt
-tweet_output/*.txt
+kubernetes/
+data/
 
 ## General Key Safety ##
 ########################
