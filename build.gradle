@@ -10,11 +10,10 @@ buildscript {
 group 'lamblin'
 version '0.1-SNAPSHOT'
 
-//apply plugin: 'idea' // Should use directory based IDEA projects, this plugin does not.
 apply plugin: 'application'
 apply plugin: "com.google.protobuf"
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.7
 
 repositories {
     mavenCentral()
@@ -31,33 +30,13 @@ dependencies {
 
 protobuf {
     generateProtoTasks {
-        // all() returns the collection of all protoc tasks
         all().each { task ->
-            // Here you can configure the task
-            // Configure built-in outputs. Each block generates a
-            // '--<name>_out' flag to the protoc command line.
             task.builtins {
-                // In Java projects, the "java" output is added automatically.
-                // You only need it if you want it in an Android project or want to add
-                // options.
-                // DO NOT omit the braces if you want this builtin to be added.
-                // java { }
-                // In Android projects, the "javanano" output is added automatically.
-                // You only need it if you want it in an Java project or want to add
-                // options.
-                // javanano {
-                //     // Options added to --javanano_out
-                //     option 'java_multiple_files=true'
-                //     option 'ignore_services=true'
-                // }
-                // Turn on python proto generation
                 python { }
             }
         }
     }
-    // Configure the protoc executable
     protoc {
-        // Download from repositories
         //  artifact = 'com.google.protobuf:protoc:3.0.0-alpha-3'
         artifact = 'com.google.protobuf:protoc:2.6.1'
     }
@@ -87,27 +66,3 @@ scripts.each() { scriptName, className ->
     }
     createAllStartScripts.dependsOn(t)
 }
-
-//sourceSets {
-//    main {
-//        proto {
-//            // In addition to the default 'src/main/proto'
-//            srcDir 'src/main/protobuf'
-//            srcDir 'src/main/protocolbuffers'
-//            // In addition to the default '**/*.proto' (use with caution).
-//            // Using an extension other than 'proto' is NOT recommended,
-//            // because when proto files are published along with class files, we can
-//            // only tell the type of a file from its extension.
-//            include '**/*.protodevel'
-//        }
-//        java {
-//            ...
-//        }
-//    }
-//    test {
-//        proto {
-//            // In addition to the default 'src/test/proto'
-//            srcDir 'src/test/protocolbuffers'
-//        }
-//    }
-//}

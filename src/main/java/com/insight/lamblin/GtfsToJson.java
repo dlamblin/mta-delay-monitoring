@@ -1,11 +1,5 @@
 package com.insight.lamblin;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.*;
-import java.util.List;
-import java.util.Map;
-
 import com.google.protobuf.ExtensionRegistry;
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
@@ -13,8 +7,17 @@ import com.insight.lamblin.shared.GetGtfs;
 import com.insight.lamblin.shared.Props;
 import org.docopt.Docopt;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+
 /**
- * import protobuf utils...
+ * Reads the GTFS data either from a file, stdin or url source. Outputs mostly json-like to stdout.
+ * TODO(lamblin): retrofit the json to be correct.
  */
 public class GtfsToJson {
 
@@ -45,11 +48,6 @@ public class GtfsToJson {
             "[default: http://datamine.mta.info/mta_esi.php?feed_id=1&key=].\n" +
             "  -v --version      Show version.\n"
             + "\n";
-    private InputStream in;
-
-    public GtfsToJson(InputStream in) {
-        this.in = in;
-    }
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws Exception {
@@ -62,19 +60,16 @@ public class GtfsToJson {
         List<String> optFile = (List<String>) opts.get("<file>");
         Boolean optGet = (Boolean) opts.get("get");
         Boolean optRead = (Boolean) opts.get("read");
-        GtfsToJson gtfsToJson;
 
         // Reading GTFS from standard input or files
         if (optRead) {
             if (optFile.isEmpty()) {
-                gtfsToJson = new GtfsToJson(System.in);
-                gtfsToJson.out();
+                GtfsToJson.out(System.in);
             } else {
                 for (String filename : optFile) {
                     Path path = Paths.get(filename);
                     try (InputStream in = Files.newInputStream(path)) {
-                        gtfsToJson = new GtfsToJson(in);
-                        gtfsToJson.out();
+                        GtfsToJson.out(in);
                     }
                 }
             }
@@ -83,13 +78,12 @@ public class GtfsToJson {
         // Reading GTFS from a URL
         if (optGet) {
             try (InputStream in = GetGtfs.feedUrlStream(optApiKey, optFeed, optUrl)) {
-                gtfsToJson = new GtfsToJson(in);
-                gtfsToJson.out();
+                GtfsToJson.out(in);
             }
         }
     }
 
-    public void out() throws IOException {
+    public static void out(InputStream in) throws IOException {
         ExtensionRegistry registry = ExtensionRegistry.newInstance();
         registry.add(com.google.transit.realtime.NyctSubway.nyctFeedHeader);
         registry.add(com.google.transit.realtime.NyctSubway.nyctTripDescriptor);

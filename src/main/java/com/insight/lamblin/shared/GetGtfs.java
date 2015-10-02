@@ -13,8 +13,8 @@ public class GetGtfs {
      * Returns an input stream from the feed url identified by the options.
      *
      * @param optApiKey The MTA Api Key
-     * @param optFeed The feed number from the MTA's GTFS feeds
-     * @param optUrl A Url to the feed
+     * @param optFeed   The feed number from the MTA's GTFS feeds
+     * @param optUrl    A Url to the feed
      * @return a stream from the open url, which the caller must close
      * @throws IOException If there's an issue reading the url stream
      */

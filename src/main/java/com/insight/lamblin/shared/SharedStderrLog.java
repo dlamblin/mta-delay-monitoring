@@ -15,7 +15,8 @@ public class SharedStderrLog {
 
     /**
      * Exits with an error code of 1. Will log a string formatted with option parameter.
-     *  @param format The format for the output string
+     *
+     * @param format The format for the output string
      * @param option The string to make part of the format's "%s" portion
      */
     public static void die(String format, String option) {
