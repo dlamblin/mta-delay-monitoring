@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Note this is a setup script for an initial Kubernetes cluster on AWS.
-# It requires serveral manual steps better covered in the README.md
+# It requires serveral manual steps better covered in a README.md
 # The main thing to note is this is expected to run on a machine with a configured aws client.
 
 # After starting the cluster, next steps are:

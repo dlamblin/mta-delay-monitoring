@@ -1,17 +1,16 @@
 package com.insight.lamblin;
 
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import com.google.protobuf.ExtensionRegistry;
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
+import com.insight.lamblin.shared.GetGtfs;
+import com.insight.lamblin.shared.Props;
 import org.docopt.Docopt;
 
 /**
@@ -19,8 +18,6 @@ import org.docopt.Docopt;
  */
 public class GtfsToJson {
 
-    public static final String MTA_API_KEY = "MtaApiKey";
-    public static final String LOCAL_PROPERTIES = "local.properties";
     private static final String docopt
             = "Gtfs to Json.\n" +
             "\n" +
@@ -36,7 +33,8 @@ public class GtfsToJson {
             "and similarly output the json to stdout.\n" +
             "Note that the feed id is substituted into the url's last \"=1&\" in\n" +
             "place of \"1\" and the MTA Feed Api Key is appended to the url.\n" +
-            "If the key is omitted a " + LOCAL_PROPERTIES + " file with MtaApiKey=<key>\n" +
+            "If the key is omitted a " + Props.LOCAL_PROPERTIES +
+            " file with MtaApiKey=<key>\n" +
             "is expected.\n" +
             "\n" +
             "Options:\n" +
@@ -84,61 +82,14 @@ public class GtfsToJson {
 
         // Reading GTFS from a URL
         if (optGet) {
-            if (optApiKey == null) {
-                // Defaults to key in LOCAL_PROPERTIES file if available
-                Properties props = new Properties();
-                Path path = Paths.get(LOCAL_PROPERTIES);
-                if (Files.notExists(path)) {
-                    props.setProperty(MTA_API_KEY, "");
-                    try (BufferedWriter w = Files.newBufferedWriter(
-                            path, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW)) {
-                        props.store(w, "Properties for mta-delay-notifications; by gtfsToJson");
-                    }
-                } else {
-                    props.load(Files.newInputStream(path));
-                    if (props.getProperty(MTA_API_KEY) == null) {
-                        props.setProperty(MTA_API_KEY, "");
-                        try (BufferedWriter w = Files.newBufferedWriter(
-                                path, StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {
-                            props.store(w, "Added properties for mta-delay-notifications by gtfsToJson");
-                        }
-                    }
-                }
-            }
-            if (!"1".equals(optFeed) && !"2".equals(optFeed) && !"11".equals(optFeed)) {
-                die(optFeed, "Error: Value of '--feed' or '-f' flag was invalid: %s\n" +
-                        "\tPlease use:\n\t\t'1' for the 1,2,3,4,5,6,S trains,\n" +
-                        "\t\t'2' for the L train, and\n\t\tand '11' for the SIR");
-            }
-            int paramFeed = optUrl.lastIndexOf("=1&");
-            if (paramFeed > -1) {
-                optUrl = optUrl.substring(0, paramFeed + 1) + optFeed +
-                        optUrl.substring(paramFeed + 2) + optApiKey;
-            } else {
-                die(optUrl, "Error: Uri given to '--url' or '-u' did not contain '=1&' " +
-                        "for feed substitution. Uri was: %s");
-            }
-            log("Info: Fetching " + optUrl);
-            URL url = new URL(optUrl);
-            URLConnection conn = url.openConnection();
-            log("Info: " + optUrl + " Header Fields: " + conn.getHeaderFields().toString());
-            try (InputStream in = conn.getInputStream()) {
+            try (InputStream in = GetGtfs.feedUrlStream(optApiKey, optFeed, optUrl)) {
                 gtfsToJson = new GtfsToJson(in);
                 gtfsToJson.out();
             }
         }
     }
 
-    private static void log(String s) {
-        System.err.println(s.replace('\n', ' '));
-    }
-
-    private static void die(String option, String format) {
-        log(String.format(format, option));
-        System.exit(1);
-    }
-
-    private void out() throws IOException {
+    public void out() throws IOException {
         ExtensionRegistry registry = ExtensionRegistry.newInstance();
         registry.add(com.google.transit.realtime.NyctSubway.nyctFeedHeader);
         registry.add(com.google.transit.realtime.NyctSubway.nyctTripDescriptor);
