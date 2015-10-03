@@ -2,6 +2,7 @@
 ############################
 kubernetes/
 data/
+remoteset.gradle
 
 ## General Key Safety ##
 ########################

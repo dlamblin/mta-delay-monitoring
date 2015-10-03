@@ -6,10 +6,13 @@ import com.insight.lamblin.shared.GetGtfs;
 import com.insight.lamblin.shared.Props;
 import com.insight.lamblin.shared.SharedStderrLog;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.docopt.Docopt;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -22,7 +25,7 @@ import java.util.Properties;
  * Fetches the MTA NYCS Realtime GTFS feed, deserializes it to read the header timestamp
  * which is used to key the serialized message into the specific kafka topic for raw GTFS
  * messages from the particular stream.
- * <p>
+ * <p/>
  * See also the usage statement.
  */
 public class RawGtfsKafkaProducer {
@@ -61,17 +64,17 @@ public class RawGtfsKafkaProducer {
         String optFeed = (String) opts.get("--feed");
         String optUrl = (String) opts.get("--url");
 
-	// Bad doc:        http://kafka.apache.org/documentation.html#producerconfigs
-	// Incomplete doc: http://kafka.apache.org/documentation.html#newproducerconfigs
-	// Static defs in org.apache.kafka.clients.producer.ProducerConfig
+        // Bad doc:        http://kafka.apache.org/documentation.html#producerconfigs
+        // Incomplete doc: http://kafka.apache.org/documentation.html#newproducerconfigs
+        // Java doc:       http://kafka.apache.org/082/javadoc/
         Properties props = new Properties();
-        //props.put("metadata.broker.list", "172.31.22.7:9092,172.31.22.6:9092,172.31.22.5:9092,172.31.22.4:9092");
-        props.put("bootstrap.servers", "172.31.22.7:9092,172.31.22.6:9092,172.31.22.5:9092,172.31.22.4:9092");
-	//props.put("serializer.class", "kafka.serializer.DefaultEncoder");
-	props.put("key.serializer", "kafka.serializer.DefaultEncoder");
-	props.put("value.serializer", "kafka.serializer.DefaultEncoder");
-        //props.put("request.required.acks", "1");
-        KafkaProducer<Long, byte[]> producer = new KafkaProducer<>(props);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                "172.31.22.7:9092,172.31.22.6:9092,172.31.22.5:9092,172.31.22.4:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.ByteArraySerializer");
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.ByteArraySerializer");
+        KafkaProducer<byte[], byte[]> producer = new KafkaProducer<>(props);
 
         // Reading GTFS from a URL
         GtfsRealtime.FeedMessage msg;
@@ -89,8 +92,8 @@ public class RawGtfsKafkaProducer {
                     timestamp + " " + formatEpoch(timestamp));
         }
 
-        ProducerRecord<Long, byte[]> data =
-                new ProducerRecord<>("raw-gtfs-" + optFeed, timestamp, gtfs);
+        ProducerRecord<byte[], byte[]> data =
+                new ProducerRecord<>("raw-gtfs-" + optFeed, longToBytes(timestamp), gtfs);
         producer.send(data);
         producer.close();
     }
@@ -98,6 +101,14 @@ public class RawGtfsKafkaProducer {
     public static String formatEpoch(long epochSeconds) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
         return sdf.format(new Date(epochSeconds * 1000));
+    }
+
+    public static byte[] longToBytes(long in) {
+        byte[] bytes = new byte[8];
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        bb.order(ByteOrder.LITTLE_ENDIAN); // As Protocol Buffers are a Little Endian format.
+        bb.putLong(in);
+        return bytes;
     }
 
 }
