@@ -1,3 +1,5 @@
+import com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile
+
 buildscript {
     repositories {
         mavenCentral()
@@ -16,11 +18,6 @@ apply plugin: "com.google.protobuf"
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
-
-// Eliminates bootstrap class warning from javac
-//tasks.withType(Compile) {
-//    options.bootClasspath = "$JDK6_HOME/jre/lib/rt.jar"
-//}
 
 repositories {
     mavenCentral()
@@ -82,4 +79,15 @@ scripts.each() { scriptName, className ->
 
 if (new File('ssh.gradle').exists()) {
     apply from: 'ssh.gradle'
+}
+
+def jre7paths = [new File(System.getenv('JAVA_HOME') + '/../jre7'),
+                 new File(System.getenv('JAVA_HOME') + '/../jdk1.7*/jre')]
+jre7paths.each() { file ->
+    if (file.exists()) {
+        // Eliminates bootstrap class warning from javac
+        tasks.withType(AbstractCompile, { AbstractCompile ac ->
+            ac.options.bootClasspath = file.getPath() + "/lib/rt.jar"
+        })
+    }
 }

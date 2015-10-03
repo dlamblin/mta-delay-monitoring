@@ -9,7 +9,7 @@ if (new File('remoteset.gradle').exists()) {
 }
 // Note that in remoteset.gradle there's an array definition that looks like:
 // ext.remoteSet = [
-//  Name      Roles                  DNS or IP    Username                    ~/.ssh/filename, Name of gateway
+////Name,     Roles,                 DNS or IP,   Username,         ~/.ssh/filename, Name of gateway
 // ['local', ['public', 'namenode'], 'localhost', System.properties['user.name'], 'id_rsa', null],
 // ]
 // But has more rows and different role names
