@@ -61,9 +61,16 @@ public class RawGtfsKafkaProducer {
         String optFeed = (String) opts.get("--feed");
         String optUrl = (String) opts.get("--url");
 
+	// Bad doc:        http://kafka.apache.org/documentation.html#producerconfigs
+	// Incomplete doc: http://kafka.apache.org/documentation.html#newproducerconfigs
+	// Static defs in org.apache.kafka.clients.producer.ProducerConfig
         Properties props = new Properties();
-        props.put("metadata.broker.list", "172.31.22.7:9092,172.31.22.6:9092,172.31.22.5:9092,172.31.22.4:9092");
-        props.put("request.required.acks", "1");
+        //props.put("metadata.broker.list", "172.31.22.7:9092,172.31.22.6:9092,172.31.22.5:9092,172.31.22.4:9092");
+        props.put("bootstrap.servers", "172.31.22.7:9092,172.31.22.6:9092,172.31.22.5:9092,172.31.22.4:9092");
+	//props.put("serializer.class", "kafka.serializer.DefaultEncoder");
+	props.put("key.serializer", "kafka.serializer.DefaultEncoder");
+	props.put("value.serializer", "kafka.serializer.DefaultEncoder");
+        //props.put("request.required.acks", "1");
         KafkaProducer<Long, byte[]> producer = new KafkaProducer<>(props);
 
         // Reading GTFS from a URL

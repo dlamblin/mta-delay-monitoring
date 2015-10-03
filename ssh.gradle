@@ -1,0 +1,56 @@
+apply plugin: 'org.hidetake.ssh'
+
+task deployAllNodes() << {
+    // No-op: do all the dependencies which will be added in the each loop below
+}
+
+if (new File('remoteset.gradle').exists()) {
+    apply from: 'remoteset.gradle'
+}
+// Note that in remoteset.gradle there's an array definition that looks like:
+// ext.remoteSet = [
+//  Name      Roles                  DNS or IP    Username                    ~/.ssh/filename, Name of gateway
+// ['local', ['public', 'namenode'], 'localhost', System.properties['user.name'], 'id_rsa', null],
+// ]
+// But has more rows and different role names
+remoteSet.each() { remoteName, roleNames, hostName, userName, identityName, gatewayName ->
+    def remote
+    if (gatewayName != null) {
+        remote = remotes.create(remoteName) {
+            host = hostName
+            user = userName
+            identity = file("${System.properties['user.home']}/.ssh/${identityName}")
+            gateway = remotes.getAt(gatewayName)
+        }
+    } else {
+        remote = remotes.create(remoteName) {
+            host = hostName
+            user = userName
+            identity = file("${System.properties['user.home']}/.ssh/${identityName}")
+        }
+    }
+    roleNames.each() { name ->
+        remote.role(name)
+    }
+    def show = tasks.create(name: remoteName+'ShowPlatformVersion') << {
+        ssh.run {
+            session(remotes.getAt(remoteName)) {
+                execute 'uname -a'
+                execute 'cat /etc/*-release', ignoreError: true
+            }
+        }
+    }
+    def deploy = tasks.create(name: 'deploy_' + remoteName, dependsOn: distTar) << {
+        ssh.run {
+            session(remotes.getAt(remoteName)) {
+                put from: distTar.archivePath, into: '.'
+                //execute 'sudo service tomcat restart'
+            }
+        }
+    }
+    if (roleNames.containsAll('public','namenode')
+            || roleNames.containsAll('internal','datanode')) {
+        deployAllNodes.dependsOn(deploy)
+    }
+}
+
