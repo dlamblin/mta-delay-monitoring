@@ -110,5 +110,4 @@ public class RawGtfsKafkaProducer {
         bb.putLong(in);
         return bytes;
     }
-
 }
