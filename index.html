@@ -1,20 +1,104 @@
-<!doctype html>
+<!DOCTYPE html>
 <html><head><title>
 Daniel Pascal Lamblin's MTA Delay Monitoring Project Pages
-</title>
+</title><link href="http://thomasf.github.io/solarized-css/solarized-dark.min.css" rel="stylesheet">
 <style>
+  aside {
+    display:inline;
+    font-size:small;
+  }
 </style>
 </head>
 <body>
-Yes there is a page about Daniel Pascal Lamblin's MTA Delay Monitoring Project. More to come later.
-<p>
-Here's some links:
-</p>
-<ul>
-<li>The <a target="_blank" href="http://github.com/dlamblin/mta-delay-monitoring">repository</a>
-</li>
-<li>Presentation <a target="_blank" href="http://www.slideshare.net/DanielLamblin/my-metro" old_href="http://www.slideshare.net/DanielLamblin/my-metro-the-smart-way-to-get-around-delays">slides</a> (interim)
-</li>
-</ul>
-</body>
-
+  <article>
+  <h1>An Insight Data Engineering Fellow's Project <aside>(NYC 2015 C term)</aside></h1>
+  <h2>My Metro: A smart way to get around<small>, delays</small></h2>
+  <h2>Synopsis</h2>
+  <p>
+    The project was titled: <i>My Metro: A smart way to get around, delays</i>.
+  </p>
+  <p>
+    It aimed to compare the MTA's New York City Transit subway feed's reported subway arrival times at stations to the public schedule, and note the averages for delays by train route and time, both for when the MTA announced a delay and for when it did not. In addition to this basic statistical information the project intended to allow a user to subscribe to delay notifications targeted to only those times, stations, trains and routes to which they had subscribed.
+  </p>
+  <p>
+    The intent was to differentiate from existing products which tend to do all of the following: <a href="http://hopstop.com/">Calculate</a> <a href="http://maps.google.com/">the various</a> <a href="http://transitapp.com/">routes</a> <a href="https://www.apple.com/ios/maps/">available</a> from a location to a destination, possibly with travel time estimates, announce the <a href="http://wheresthefuckingtrains.com/">next arriving trains</a> at a station, and <a href="http://www.google.com/landing/now/">send you updates on your frequently searched routes</a> throughout the day. Alternatively you could look up the MTA's subway system wide <a href="http://travel.mtanyct.info/serviceadvisory/">status</a> <a href="http://web.mta.info/status/serviceStatus.html">updates</a>, which I would have linked more accurately, <span title="
+We are currently experiencing technical difficulties with Service Status.
+We are working to resolve the problem, and apologize for any inconvenience.">
+if they weren't currently down for service maintenance</span>.
+  </p>
+  <p>
+    It was partially contained in the development of this MTA Delay Monitoring project git repo, partially in my development machine(s), and partially in a Amazon Web Services EC2 hosted mini-cluster. The latter has been turned off, and the former cannot work with-out it.
+  </p>
+  <p>
+    The genesis of this project was an Insight Data Engineering fellowship in the 2015 C term NYC program. This is relatively selective and I was glad to be able to participate. Importanty the Insight Data Science and Engineering projects are designed to be throwaway prototypes for presentation-style demonstration purposes only. In keeping with this, the prototype in question has been fairly thoroughly thrown away.
+  </p>
+  <h2>Story time</h2>
+  <p>
+    I built something in 3 weeks. It wasn't quite what I meant to build though. So I have a new plan to rebuild a more pointed version of this project. I intend to spend a day
+  </p>
+  <ul>
+    <li>documenting what the project was, then</li>
+    <li>pointing out what did or did not work. Then</li>
+    <li>defining an iteration on the prototype.</li>
+  </ul>
+  <p>
+  The problems with the existing project are many, but they stem from a mismatch in my understanding of the approach used and the recommended process.
+  </p>
+  <p>
+  As explained to me the Insight process for a demo project is:
+  </p>
+  <blockquote>
+    In order to learn to use a set of open source big-data processing tools, you should concieve of an appropriate project, spend 3 weeks setting up the tools, and building the project so as to be able to demonstrate a working knowledge of these tools.
+  </blockquote>
+  <p>
+    Upon reflection is it better stated as this:
+  </p>
+  <blockquote>
+    Here are a number of set solutions for various classes of problems. Assume you have a problem and use as many of these solutions to demonstrate how they can solve problems like these.
+  </blockquote>
+  <p>
+    Picking the solution before the problem is an inversion of the normal engineering approach, mostly for valid educational purposes. My own trouble with the process stems from not realizing the best approach would be to synthesize all of the input and thus totally control the output. This makes faking all of the <q>user data</q> for an application the best choice, and it indeed led to a number of successful projects. Similarly, comparing systems with synthetic benchmarks was also an applicable use of the short time-frame available. To be fair, some very real applications were able to be produced by a minority of fellows, and to do so the best approach is sticking with a good, known, voluminous, source of data which is in as plain a text format as you can get. After all most of the tools were made to be fancy syslogd or log4j analyzers. Thus a good twitter feed based project is a good idea. Not that all of these do not also run in to time allocation issues of actually configuring and running a small, but real, cluster, compared with the softer Data Science oriented project goals for the Data Science Fellows.
+  </p>
+  <p>
+  Bear in mind that the recommended Data Engineering tools are similar to, but each somewhat unlike various famous companies' internal solutions for the same class of problems. They are not just undocumented and under active development, which is par-for-the-course in software, leading to misguided or outdated official documentation and tutorials, but they are further rarely even fully fleshed out in regards to their installation processes, dependencies, use cases, nor APIs, which are similarly undocumented, with-out even decent generated documentation. If they do have Javadoc, for example, it's not uncommon the few actual comments to read like: "The <tt>partition</tt> method partitions the input." Do go on, <i>please</i>. About 3 weeks into this process, I considered that perhpas my time would be more productively spent on a less throw-away attempt at completly filling in Javadoc for all the libraries I was using for Hadoop/HDFS, HBase, Kafka, & Spark. Or maybe writing a tutorial on integrating one non-Hadoop serialization format into the aforementioned (like Protocol Buffers with Extensions, or using Parquet with Protocol Buffers and Extensions with HBase, and Kafka, Spark).
+  </p>
+  <p>
+    Speaking of a throwaway project or prototype, I generally can confirm that prototyypes, the kinds of things one builds in a week or less, should be thrown out, lest they provide an inadequite structure to future work. However, I liked my eventual project idea and thus had a digression on repeatable, vendor agnostic server setup, during which I tried to add cluster deployment to Gradle, apply either Docker or Kubernetes to my project, and even attempted to throw out Hadoop's HDFS in favor of a better supported FS like Gluster with a Hadoop API shim on top. These are all viable options, but not only are they tricky in their own right, and full of caveats, but they also take weeks of exploration and attempts to get quite right for a basic project.
+  </p>
+<h2>The initial project, weekly iterations:</h2>
+  <p>
+    After spending a day to identify solid next steps, I'll try to revisit the progress on the initial project. For now, here's some notes on it.
+  </p>
+  <p>
+    The remaining useful parts of the project are:
+  </p>
+  <ul>
+    <li>
+      The most useful part of it was about 30 days worth of higher resolution MTA NYCT Subway specific GTFS data for the 1, 2, 3, 4, 5, 6, S, L and Staten Island lines. When I got started downloading this data to store it longer term for the continuation with the next phase I found the download progress didn't beat the turn off time for the cluster. Thus data was lost. Also protocol buffers ended up undelimited in a stream. It's not unrecoverable, but highly-undesirable. That was the quick and dirty, start-now, solution, that was known to be a bad idea but at least saved something. This leads naturally to a small project idea of a Kafka consumer that outputs a size delimited stream of the messages, as is recommended for protocol buffers v2. I'm also quite excited to read both about <a href="https://developers.google.com/protocol-buffers/docs/reference/proto3-spec">protocol buffers v3</a>, <a href="https://google.github.io/flatbuffers/">flat buffers</a>, and <a href="https://capnproto.org/">Capn Proto</a>. These are mostly Alpha or Beta phase right now though.
+    </li>
+    <li>
+      Historical data downloading scripts, update scripts, and transform scripts.
+    </li>
+    <li>
+      Some analysis on the historical data.
+    </li>
+  </ul>
+  <p>
+    For the longest time all I had <b>time</b> to say on this project was:
+  </p>
+  <p>
+    Yes there is a page about Daniel Pascal Lamblin's MTA Delay Monitoring Project. More to come later.
+  </p>
+  <p>
+    Here's some links:
+  </p>
+  <ul>
+    <li>
+      The <a target="_blank" href="http://github.com/dlamblin/mta-delay-monitoring">repository</a>
+    </li>
+    <li>
+      Presentation <a target="_blank" href="http://www.slideshare.net/DanielLamblin/my-metro" old_href="http://www.slideshare.net/DanielLamblin/my-metro-the-smart-way-to-get-around-delays">slides</a> (interim)
+    </li>
+  </ul>
+</article>
+</body></html>
